@@ -1,0 +1,57 @@
+{
+	"folders": [
+		{
+			"path": "pwa"
+		},
+		{
+			"path": "pwa/node_modules/@scandipwa/scandipwa/src"
+		}
+	],
+	"settings": {
+		"eslint.workingDirectories": [
+			"pwa/packages",
+			"pwa/src"
+		]
+	},
+	"launch": {
+		"version": "0.2.0",
+		"configurations": [
+			{
+				"type": "firefox",
+				"request": "launch",
+				"reAttach": true,
+				"name": "Launch Firefox against localhost",
+				"url": "https://localhost:80/",
+				"webRoot": "${workspaceFolder:pwa}",
+				"pathMappings": [
+					{
+						"url": "webpack:///node_modules/@scandipwa/scandipwa/src/",
+						"path": "${workspaceFolder:src}"
+					},
+					{
+						"url": "webpack:///",
+						"path": "${workspaceFolder:pwa}"
+               		}
+				]
+			},
+			{
+				"type": "chrome",
+				"request": "launch",
+				"reAttach": true,
+				"name": "Launch Chrome against localhost",
+				"url": "https://localhost:80/",
+				"webRoot": "${workspaceFolder:pwa}",
+				"pathMappings": [
+					{
+						"url": "webpack:///node_modules/@scandipwa/scandipwa/src/",
+						"path": "${workspaceFolder:src}"
+					},
+					{
+						"url": "webpack:///",
+						"path": "${workspaceFolder:pwa}"
+               		}
+				]
+			}
+		]
+	}
+}
