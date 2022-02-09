@@ -11,9 +11,7 @@
 
 import { isSignedIn } from 'Util/Auth';
 import BrowserDatabase from 'Util/BrowserDatabase';
-//import { connect } from 'react-redux';
 
-//import blueCheckScriptEnabler from '../../../static/blueCheckEnablerScript';
 import { blueCheckScriptUrl } from './CheckoutPlugin.config';
 
 export const TIMEOUT_LISTEN_TO_CHECKOUT = 250;
@@ -38,7 +36,6 @@ export const scrapeLoggedInUserData = (addresses, email) => {
         document.getElementsByClassName('CheckoutAddressTable-Button_isSelected')[0]
             .parentElement.classList[1]
     );
-    console.log("WHAEIHIFqmNAK")
     const address = addresses.find((address) => chosenAddressId === address.id);
     const { BlueCheck } = window;
     const userDataPrefix = 'shipping';
@@ -51,7 +48,6 @@ export const scrapeLoggedInUserData = (addresses, email) => {
     BlueCheck.userData[`${userDataPrefix }_city`] = address.city;
     BlueCheck.userData[`${userDataPrefix }_country`] = address.country_id;
     BlueCheck.userData[`${userDataPrefix }_region`] = address.region.region;
-
     BlueCheck.userData[`${userDataPrefix }_phone`] = address.telephone;
     BlueCheck.userData[`${userDataPrefix }_postal_code`] = address.postcode;
     BlueCheck.requiredFields = [
@@ -60,80 +56,78 @@ export const scrapeLoggedInUserData = (addresses, email) => {
     ];
 };
 
-
-export const scrapeGuestUserData = (email = null,address) => {
+export const scrapeGuestUserData = (email = null, address) => {
     const userDataPrefix = 'shipping';
-    console.log('AAAAAAAAAA')
     const { BlueCheck } = window;
-    BlueCheck.userData.email = email || address.guest_email
+    BlueCheck.userData.email = email || address.guest_email;
     BlueCheck.userData[`${userDataPrefix }_first_name`] = address.firstname;
     BlueCheck.userData[`${userDataPrefix }_last_name`] = address.lastname;
     BlueCheck.userData[`${userDataPrefix }_address`] = address.street0;
     BlueCheck.userData[`${userDataPrefix }_address2`] = address.street1;
-    BlueCheck.userData[`${userDataPrefix }_address3`] =address.street2;
+    BlueCheck.userData[`${userDataPrefix }_address3`] = address.street2;
     BlueCheck.userData[`${userDataPrefix }_city`] = address.city;
     BlueCheck.userData[`${userDataPrefix }_country`] = address.country_id;
     BlueCheck.userData[`${userDataPrefix }_region`] = address.region_id;
     BlueCheck.userData[`${userDataPrefix }_phone`] = address.telephone;
-    BlueCheck.userData[`${userDataPrefix }_postal_code`] =address.postcode;
-    BlueCheck.requiredFields = [`${userDataPrefix }_first_name`,`${userDataPrefix }_last_name`,`${userDataPrefix }_country`, 'email'];
-    console.log(BlueCheck)
+    BlueCheck.userData[`${userDataPrefix }_postal_code`] = address.postcode;
+    BlueCheck.requiredFields = [
+        `${userDataPrefix }_first_name`,
+        `${userDataPrefix }_last_name`,
+        `${userDataPrefix }_country`,
+        'email'];
 };
-
 
 export const componentDidMount = (args, callback, _instance) => {
-    BrowserDatabase.setItem(false,'blueCheck')
-    loadScript()
-    
+    BrowserDatabase.setItem(false, 'blueCheck');
+    loadScript();
+
     return callback(...args);
 };
-export const componentDidUpdate = (args,callback,_instance) => {
-    //checking the new state with the old one and verifying that script exists
-    if(args[1].checkoutStep == "BILLING_STEP" 
-        && _instance.state.checkoutStep == "SHIPPING_STEP"
+export const componentDidUpdate = (args, callback, _instance) => {
+    // checking the new state with the old one and verifying that script exists
+    if (args[1].checkoutStep === 'BILLING_STEP'
+        && _instance.state.checkoutStep === 'SHIPPING_STEP'
         && document.getElementById('bluecheck-script-container')
-    ){
+    ) {
         window.BlueCheck = null;
         document.getElementById('bluecheck-container').remove();
         document.getElementById('bluecheck-script-container').remove();
         document.getElementById('bluecheck-script').remove();
         loadScript();
     }
-    
+
     return callback(...args);
-}
-
-
+};
 
 // Removing the script to make sure it is correctly reloaded when revisiting the component again!
 export const componentWillUnmount = (args, callback, _instance) => {
-    if(document.getElementById('bluecheck-script-container')){
+    if (document.getElementById('bluecheck-script-container')) {
         window.BlueCheck = null;
         document.getElementById('bluecheck-container').remove();
         document.getElementById('bluecheck-script-container').remove();
         document.getElementById('bluecheck-script').remove();
     }
+
     return callback(...args);
 };
 
-export const onShippingSuccess = (args,callback,_instance) => {
+export const onShippingSuccess = (args, callback, _instance) => {
     const isCustomerSignedIn = isSignedIn();
     const customer = BrowserDatabase.getItem('customer') || {};
     const { BlueCheck } = window;
-    
-    if(BlueCheck){
+
+    if (BlueCheck) {
         BlueCheck.platformCallbacks.onReady = () => {
             function prepareButton() {
                 const verifyBtn = document.getElementsByClassName('CheckoutShipping-Button')[0];
-                console.log(verifyBtn);
-                    BlueCheck.platformCallbacks.onSuccess = () => {
-                        BrowserDatabase.setItem(true,'blueCheck')
-                        verifyBtn.click();
-                    };
-                    if (BlueCheck.validateAndDisplayModal()) {
-                        //e.stopPropagation();
-                        //e.preventDefault();
-                    }
+                BlueCheck.platformCallbacks.onSuccess = () => {
+                    BrowserDatabase.setItem(true, 'blueCheck');
+                    verifyBtn.click();
+                };
+                if (BlueCheck.validateAndDisplayModal()) {
+                    // e.stopPropagation();
+                    // e.preventDefault();
+                }
             }
             function listenForCheckout() {
                 try {
@@ -147,28 +141,30 @@ export const onShippingSuccess = (args,callback,_instance) => {
         BlueCheck.platformCallbacks.scrapeUserData = () => {
             const isCustomAddress = document
                 .getElementsByClassName('CheckoutAddressBook-Button_isCustomAddressExpanded')[0] !== undefined;
-    
+
             return (isCustomerSignedIn && !isCustomAddress)
-                ? scrapeLoggedInUserData(customer.addresses, customer.email) : scrapeGuestUserData(customer.email,args[0]);
+                ? scrapeLoggedInUserData(customer.addresses, customer.email)
+                : scrapeGuestUserData(customer.email, args[0]);
         };
 
         BlueCheck.initialize();
-        return callback(...args);   
     }
-}
+
+    return callback(...args);
+};
 
 export default {
     'Route/Checkout/Container': {
         'member-function': {
             componentDidMount,
             componentWillUnmount,
-            componentDidUpdate,
+            componentDidUpdate
         }
     },
-    'Component/CheckoutShipping/Container':{
-        'member-function':{
-            onShippingSuccess,
+    'Component/CheckoutShipping/Container': {
+        'member-function': {
+            onShippingSuccess
         }
-    },
-    
+    }
+
 };
