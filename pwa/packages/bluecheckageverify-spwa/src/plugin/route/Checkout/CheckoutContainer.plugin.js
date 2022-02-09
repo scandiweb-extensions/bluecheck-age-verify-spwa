@@ -124,10 +124,7 @@ export const onShippingSuccess = (args, callback, _instance) => {
                     BrowserDatabase.setItem(true, 'blueCheck');
                     verifyBtn.click();
                 };
-                if (BlueCheck.validateAndDisplayModal()) {
-                    // e.stopPropagation();
-                    // e.preventDefault();
-                }
+                BlueCheck.validateAndDisplayModal();
             }
             function listenForCheckout() {
                 try {
@@ -166,5 +163,4 @@ export default {
             onShippingSuccess
         }
     }
-
 };
