@@ -38,6 +38,7 @@ export const scrapeLoggedInUserData = (addresses, email) => {
         document.getElementsByClassName('CheckoutAddressTable-Button_isSelected')[0]
             .parentElement.classList[1]
     );
+    console.log("WHAEIHIFqmNAK")
     const address = addresses.find((address) => chosenAddressId === address.id);
     const { BlueCheck } = window;
     const userDataPrefix = 'shipping';
@@ -62,6 +63,7 @@ export const scrapeLoggedInUserData = (addresses, email) => {
 
 export const scrapeGuestUserData = (email = null,address) => {
     const userDataPrefix = 'shipping';
+    console.log('AAAAAAAAAA')
     const { BlueCheck } = window;
     BlueCheck.userData.email = email || address.guest_email
     BlueCheck.userData[`${userDataPrefix }_first_name`] = address.firstname;
@@ -74,10 +76,8 @@ export const scrapeGuestUserData = (email = null,address) => {
     BlueCheck.userData[`${userDataPrefix }_region`] = address.region_id;
     BlueCheck.userData[`${userDataPrefix }_phone`] = address.telephone;
     BlueCheck.userData[`${userDataPrefix }_postal_code`] =address.postcode;
-    BlueCheck.requiredFields = [`
-    ${userDataPrefix }_first_name`, `${userDataPrefix }_last_name`,
-    `${userDataPrefix }_country`, 'email'];
-    console.log(BlueCheck.userData);
+    BlueCheck.requiredFields = [`${userDataPrefix }_first_name`,`${userDataPrefix }_last_name`,`${userDataPrefix }_country`, 'email'];
+    console.log(BlueCheck)
 };
 
 
@@ -126,16 +126,14 @@ export const onShippingSuccess = (args,callback,_instance) => {
             function prepareButton() {
                 const verifyBtn = document.getElementsByClassName('CheckoutShipping-Button')[0];
                 console.log(verifyBtn);
-                verifyBtn.onclick = (e) => {
                     BlueCheck.platformCallbacks.onSuccess = () => {
                         BrowserDatabase.setItem(true,'blueCheck')
                         verifyBtn.click();
                     };
                     if (BlueCheck.validateAndDisplayModal()) {
-                        e.stopPropagation();
-                        e.preventDefault();
+                        //e.stopPropagation();
+                        //e.preventDefault();
                     }
-                };
             }
             function listenForCheckout() {
                 try {
@@ -151,7 +149,7 @@ export const onShippingSuccess = (args,callback,_instance) => {
                 .getElementsByClassName('CheckoutAddressBook-Button_isCustomAddressExpanded')[0] !== undefined;
     
             return (isCustomerSignedIn && !isCustomAddress)
-                ? scrapeLoggedInUserData(addresses, email) : scrapeGuestUserData(email,args[0]);
+                ? scrapeLoggedInUserData(customer.addresses, customer.email) : scrapeGuestUserData(customer.email,args[0]);
         };
 
         BlueCheck.initialize();
@@ -171,5 +169,6 @@ export default {
         'member-function':{
             onShippingSuccess,
         }
-    }
+    },
+    
 };
