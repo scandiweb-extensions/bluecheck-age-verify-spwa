@@ -59,6 +59,9 @@ export const scrapeLoggedInUserData = (addresses, email) => {
 export const scrapeGuestUserData = (email = null, address) => {
     const userDataPrefix = 'shipping';
     const { BlueCheck } = window;
+    const usIndex = 231;
+    // Gets the country of index 231, which is United States
+    const usRegion = BrowserDatabase.getItem('config').countries[usIndex].available_regions[address.region_id];
     BlueCheck.userData.email = email || address.guest_email;
     BlueCheck.userData[`${userDataPrefix }_first_name`] = address.firstname;
     BlueCheck.userData[`${userDataPrefix }_last_name`] = address.lastname;
@@ -67,7 +70,7 @@ export const scrapeGuestUserData = (email = null, address) => {
     BlueCheck.userData[`${userDataPrefix }_address3`] = address.street2;
     BlueCheck.userData[`${userDataPrefix }_city`] = address.city;
     BlueCheck.userData[`${userDataPrefix }_country`] = address.country_id;
-    BlueCheck.userData[`${userDataPrefix }_region`] = address.region_id;
+    BlueCheck.userData[`${userDataPrefix }_region`] = usRegion.name;
     BlueCheck.userData[`${userDataPrefix }_phone`] = address.telephone;
     BlueCheck.userData[`${userDataPrefix }_postal_code`] = address.postcode;
     BlueCheck.requiredFields = [
@@ -114,37 +117,43 @@ export const componentWillUnmount = (args, callback, _instance) => {
 export const onShippingSuccess = (args, callback, _instance) => {
     const isCustomerSignedIn = isSignedIn();
     const customer = BrowserDatabase.getItem('customer') || {};
-    const { BlueCheck } = window;
 
-    if (BlueCheck) {
-        BlueCheck.platformCallbacks.onReady = () => {
-            function prepareButton() {
-                const verifyBtn = document.getElementsByClassName('CheckoutShipping-Button')[0];
-                BlueCheck.platformCallbacks.onSuccess = () => {
-                    BrowserDatabase.setItem(true, 'blueCheck');
-                    verifyBtn.click();
-                };
-                BlueCheck.validateAndDisplayModal();
-            }
-            function listenForCheckout() {
-                try {
-                    prepareButton();
-                } catch (e) {
-                    setTimeout(listenForCheckout, TIMEOUT_LISTEN_TO_CHECKOUT);
+    if (args[0].country_id === 'US') {
+        const { BlueCheck } = window;
+        if (BlueCheck) {
+            BlueCheck.platformCallbacks.onReady = () => {
+                function prepareButton() {
+                    const verifyBtn = document.getElementsByClassName('CheckoutShipping-Button')[0];
+                    BlueCheck.platformCallbacks.onSuccess = () => {
+                        BrowserDatabase.setItem(true, 'blueCheck');
+                        verifyBtn.click();
+                    };
+                    // Takes the user back if he closes BlueCheck window, since its "Back" button is not operational
+                    BlueCheck.platformCallbacks.onQuit = () => {
+                        window.history.back();
+                    };
+                    BlueCheck.validateAndDisplayModal();
                 }
-            }
-            setTimeout(listenForCheckout);
-        };
-        BlueCheck.platformCallbacks.scrapeUserData = () => {
-            const isCustomAddress = document
-                .getElementsByClassName('CheckoutAddressBook-Button_isCustomAddressExpanded')[0] !== undefined;
+                function listenForCheckout() {
+                    try {
+                        prepareButton();
+                    } catch (e) {
+                        setTimeout(listenForCheckout, TIMEOUT_LISTEN_TO_CHECKOUT);
+                    }
+                }
+                setTimeout(listenForCheckout);
+            };
+            BlueCheck.platformCallbacks.scrapeUserData = () => {
+                const isCustomAddress = document
+                    .getElementsByClassName('CheckoutAddressBook-Button_isCustomAddressExpanded')[0] !== undefined;
 
-            return (isCustomerSignedIn && !isCustomAddress)
-                ? scrapeLoggedInUserData(customer.addresses, customer.email)
-                : scrapeGuestUserData(customer.email, args[0]);
-        };
+                return (isCustomerSignedIn && !isCustomAddress)
+                    ? scrapeLoggedInUserData(customer.addresses, customer.email)
+                    : scrapeGuestUserData(customer.email, args[0]);
+            };
 
-        BlueCheck.initialize();
+            BlueCheck.initialize();
+        }
     }
 
     return callback(...args);
