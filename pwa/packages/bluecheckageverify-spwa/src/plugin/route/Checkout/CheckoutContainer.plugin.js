@@ -60,8 +60,9 @@ export const scrapeGuestUserData = (email = null, address) => {
     const userDataPrefix = 'shipping';
     const { BlueCheck } = window;
     const usIndex = 231;
+    const regionIndex = address.region_id - 1;
     // Gets the country of index 231, which is United States
-    const usRegion = BrowserDatabase.getItem('config').countries[usIndex].available_regions[address.region_id];
+    const usRegion = BrowserDatabase.getItem('config').countries[usIndex].available_regions[regionIndex];
     BlueCheck.userData.email = email || address.guest_email;
     BlueCheck.userData[`${userDataPrefix }_first_name`] = address.firstname;
     BlueCheck.userData[`${userDataPrefix }_last_name`] = address.lastname;
