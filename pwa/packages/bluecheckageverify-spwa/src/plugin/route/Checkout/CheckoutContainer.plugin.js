@@ -118,8 +118,10 @@ export const componentWillUnmount = (args, callback, _instance) => {
 export const onShippingSuccess = (args, callback, _instance) => {
     const isCustomerSignedIn = isSignedIn();
     const customer = BrowserDatabase.getItem('customer') || {};
+    BrowserDatabase.setItem(true, 'blueCheck');
 
     if (args[0].country_id === 'US') {
+        BrowserDatabase.setItem(false, 'blueCheck');
         const { BlueCheck } = window;
         if (BlueCheck) {
             BlueCheck.platformCallbacks.onReady = () => {
@@ -128,6 +130,7 @@ export const onShippingSuccess = (args, callback, _instance) => {
                     BlueCheck.platformCallbacks.onSuccess = () => {
                         BrowserDatabase.setItem(true, 'blueCheck');
                         verifyBtn.click();
+                        return callback(...args);
                     };
                     // Takes the user back if he closes BlueCheck window, since its "Back" button is not operational
                     BlueCheck.platformCallbacks.onQuit = () => {
@@ -155,9 +158,12 @@ export const onShippingSuccess = (args, callback, _instance) => {
 
             BlueCheck.initialize();
         }
+    } else {
+        return callback(...args);
     }
 
-    return callback(...args);
+    // shouldn't reach this
+    return null;
 };
 
 export default {
