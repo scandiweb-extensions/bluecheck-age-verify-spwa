@@ -1,6 +1,6 @@
 {
-    "name": "template-extension",
-    "version": "0.0.0",
+    "name": "bluecheckageverify-spwa",
+    "version": "1.0.0",
     "license": "OSL-3.0",
     "scandipwa": {
         "type": "extension"
